@@ -10,19 +10,18 @@ namespace UJDCompiler
         {
             Token currentToken = null;
             int c;
-            while((c = s.Read()) >= 0)
+            while ((c = s.Read()) >= 0)
             {
                 var t = Token.GetToken(c);
-                if (currentToken == null)
-                    currentToken = (Token)Activator.CreateInstance(t);
-                else if (currentToken.GetType() != t)
+                if (currentToken == null || currentToken.GetType() != t)
                 {
                     //token changed
-                    yield return currentToken;
-                    currentToken = (Token) Activator.CreateInstance(t);
+                    if (currentToken != null)
+                        yield return currentToken;
+                    currentToken = (Token)Activator.CreateInstance(t);
                 }
 
-                currentToken.Code += (char) c;
+                currentToken.Code += (char)c;
             }
 
             yield return currentToken;

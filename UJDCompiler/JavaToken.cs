@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace UJDCompiler
 {
-    class JavaToken : Token
+    public class JavaToken : Token
     {
+        public override IEnumerable<JavaToken> JToken => new []{this};
     }
 }
