@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "UJDCompiler": {
+      "commandName": "Project",
+      "commandLineArgs": "C:\\Users\\jan_f\\Desktop\\UJD\\*.ujd \"C:\\Users\\jan_f\\Desktop\\UJD\" \"C:\\Program Files\\Java\\jdk-13.0.1\\bin\\javac.exe\""
+    }
+  }
+}
