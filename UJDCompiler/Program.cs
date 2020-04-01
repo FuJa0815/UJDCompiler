@@ -2,72 +2,86 @@
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
+using McMaster.Extensions.CommandLineUtils;
 
 namespace UJDCompiler
 {
-    class Program
+    internal partial class Program
     {
-        static void Main(string[] args)
-        {
-            if (args.Length < 3)
-                Error("Invalid argument length!\nUsage: UJDCompiler.exe [filename]... [dest jar] [javac path]");
-            var files = args[..^2].SelectMany(p => Directory.GetFiles(Path.GetDirectoryName(p), Path.GetFileName(p)));
-            var jfiles = files.Select(GetJavaFromUjdPath);
-            var destFolder = args[^2];
-            var outputJarPath = Path.Combine(destFolder, "bin", Path.GetFileNameWithoutExtension(args[^2])+".jar");
-            var javacPath = args[^1];
-            var jarPath = Path.Combine(Path.GetDirectoryName(args[^1]), "jar");
-            Directory.CreateDirectory(Path.Combine(destFolder, "bin"));
+        private static void Main(string[] args) =>
+            CommandLineApplication.Execute<Program>(args);
 
+        // ReSharper disable UnusedMember.Local
+        private void OnExecute()
+        {
             RunTask("Compile started", "Compiled", () =>
             {
-                RunTask("Load UJD-Table", "UJD-Table Loaded", UjdToken.LoadTree);
-                foreach (var file in files)
+                RunTask("Load UJD-Table", "UJD-Table Loaded",
+                        () => UjdToken.LoadTree(DialectLookupFile, DialectLookupSeparator));
+                var sb = new StringBuilder();
+                foreach (var file in InputFiles)
                 {
                     var tokens = RunTask("Tokenizer started", "Tokenizer finished",
                                          () => Lexer.GetTokens(new StreamReader(File.OpenRead(file))));
-                    var jcode = RunTask("Convert to Java code started", "Convert to Java code done",
+                    var jCode = RunTask("Convert to Java code started", "Convert to Java code done",
                                         () =>
                                             string.Join("",
                                                         tokens.Select(p => p.JToken.Select(x => x.Code))
                                                               .SelectMany(p => p)));
+                    var jPath = GetJavaFromUjdPath(file);
+                    sb.Append(jPath + " ");
                     RunTask("Write .java file", ".java file written",
                             () =>
-                                File.WriteAllText(GetJavaFromUjdPath(file),
-                                                  jcode));
-                } 
+                                File.WriteAllText(jPath,
+                                                  jCode));
+                }
 
-                RunTask("Running javaw", "javaw done", () =>
-                            Process.Start(javacPath, string.Join(" ", jfiles) + " -d "+destFolder)?.WaitForExit());
+
+                RunTask("Running javac", "javac done", () =>
+                            Process.Start(JavacPath,
+                                          sb + "-d " + JavaOutputDirectory)?.WaitForExit());
                 RunTask("Building jar", "jar built", () =>
-                            Process.Start(jarPath, "cvf "+ outputJarPath + " " + Path.Combine(destFolder, "*.class"))?.WaitForExit());
+                {
+                    var output = Path.Combine(JavaOutputDirectory, "bin");
+                    Directory.CreateDirectory(output);
+                    output = Path.Combine(output, JarFilename.Replace(".jar", "") + ".jar");
+                    Process.Start(new ProcessStartInfo(JarPath,
+                                                       "cvf " + output + " *") {RedirectStandardOutput = Quiet})
+                          ?.WaitForExit();
+                }, !NoJarBuild);
+                RunTask("Deleting .java files",                       ".java files deleted", () =>
+                            DeleteAll(JavaOutputDirectory, "*.java"), !KeepJavaFiles);
+                RunTask("Deleting .class files",                       ".class files deleted", () =>
+                            DeleteAll(JavaOutputDirectory, "*.class"), !KeepClassFiles);
             });
-            // Schreiben in .java Datei
-            // javac.exe aufrufen
         }
 
-        private static string GetJavaFromUjdPath(string file) =>
-            Path.Combine(Path.GetDirectoryName(file), Path.GetFileNameWithoutExtension(file)) + ".java";
-
-        private static void RunTask(string pre, string post, Action action) =>
-            RunTask<object>(pre, post, () =>
-            {
-                action();
-                return null;
-            });
-
-        private static T RunTask<T>(string pre, string post, Func<T> action)
+        private void DeleteAll(string path, string wildcard)
         {
-            Console.WriteLine(pre);
+            foreach (var file in new DirectoryInfo(path).EnumerateFiles(wildcard)) file.Delete();
+        }
+
+        private string GetJavaFromUjdPath(string file) =>
+            Path.Combine(JavaOutputDirectory, Path.GetFileNameWithoutExtension(file)) + ".java";
+
+        private void RunTask(string pre, string post, Action action, bool run = true)
+        {
+            if (run)
+                RunTask<object>(pre, post, () =>
+                {
+                    action();
+                    return null;
+                });
+        }
+
+        private T RunTask<T>(string pre, string post, Func<T> action, bool run = true)
+        {
+            if (!run) return default;
+            if (!Quiet) Console.WriteLine(pre);
             var v = action();
-            Console.WriteLine(post);
+            if (!Quiet) Console.WriteLine(post);
             return v;
-        }
-
-        private static void Error(string message)
-        {
-            Console.WriteLine(message);
-            Environment.Exit(1);
         }
     }
 }

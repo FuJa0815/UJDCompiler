@@ -9,9 +9,7 @@ namespace UJDCompiler
 
         public abstract IEnumerable<JavaToken> JToken { get; }
 
-        public static Type GetToken(int c)
-        {
-            return c == ' ' || c == '\t' ? typeof(UjdToken) : typeof(JavaToken);
-        }
+        public static Type GetToken(int c, char lT, char rT) =>
+            c == lT || c == rT ? typeof(UjdToken) : typeof(JavaToken);
     }
 }

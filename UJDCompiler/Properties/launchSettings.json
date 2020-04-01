@@ -2,7 +2,8 @@
   "profiles": {
     "UJDCompiler": {
       "commandName": "Project",
-      "commandLineArgs": "C:\\Users\\jan_f\\Desktop\\UJD\\*.ujd \"C:\\Users\\jan_f\\Desktop\\UJD\" \"C:\\Program Files\\Java\\jdk-13.0.1\\bin\\javac.exe\""
+      "commandLineArgs":
+        "-j -c -i C:\\Users\\jan_f\\Desktop\\Compile\\UJD\\*.ujd -i C:\\Users\\jan_f\\Desktop\\Compile\\UJD2\\*.ujd C:\\Users\\jan_f\\Desktop\\Compile\\JAVA output.jar"
     }
   }
 }

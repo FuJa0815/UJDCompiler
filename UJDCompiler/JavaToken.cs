@@ -4,6 +4,6 @@ namespace UJDCompiler
 {
     public class JavaToken : Token
     {
-        public override IEnumerable<JavaToken> JToken => new[] { this };
+        public override IEnumerable<JavaToken> JToken => new[] {this};
     }
 }

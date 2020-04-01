@@ -9,19 +9,18 @@ namespace UJDCompiler
         public static IEnumerable<Token> GetTokens(StreamReader s)
         {
             Token currentToken = null;
-            int c;
+            int   c;
             while ((c = s.Read()) >= 0)
             {
-                var t = Token.GetToken(c);
+                var t = Token.GetToken(c, Program.Attr.LeftChar, Program.Attr.RightChar);
                 if (currentToken == null || currentToken.GetType() != t)
                 {
                     //token changed
-                    if (currentToken != null)
-                        yield return currentToken;
-                    currentToken = (Token)Activator.CreateInstance(t);
+                    if (currentToken != null) yield return currentToken;
+                    currentToken = (Token) Activator.CreateInstance(t);
                 }
 
-                currentToken.Code += (char)c;
+                currentToken.Code += (char) c;
             }
 
             yield return currentToken;
