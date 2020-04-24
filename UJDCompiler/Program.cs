@@ -1,13 +1,13 @@
-﻿using McMaster.Extensions.CommandLineUtils;
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using McMaster.Extensions.CommandLineUtils;
 
 namespace UJDCompiler
 {
-    internal partial class Program
+    public partial class Program
     {
         private static void Main(string[] args) =>
             CommandLineApplication.Execute<Program>(args);
@@ -49,13 +49,13 @@ namespace UJDCompiler
                     output = Path.Combine(output, JarFilename.Replace(".jar", "") + ".jar");
                     Process.Start(new ProcessStartInfo(JarPath,
                                                        "cvf " + output + " *")
-                    { RedirectStandardOutput = Quiet })
+                                      {RedirectStandardOutput = Quiet})
                           ?.WaitForExit();
                 }, !NoJarBuild);
-                RunTask("Deleting .java files", ".java files deleted", () =>
-      DeleteAll(JavaOutputDirectory, "*.java"), !KeepJavaFiles);
-                RunTask("Deleting .class files", ".class files deleted", () =>
-      DeleteAll(JavaOutputDirectory, "*.class"), !KeepClassFiles);
+                RunTask("Deleting .java files",                       ".java files deleted", () =>
+                            DeleteAll(JavaOutputDirectory, "*.java"), !KeepJavaFiles);
+                RunTask("Deleting .class files",                       ".class files deleted", () =>
+                            DeleteAll(JavaOutputDirectory, "*.class"), !KeepClassFiles);
             });
         }
 

@@ -1,16 +1,15 @@
-﻿using McMaster.Extensions.CommandLineUtils;
-using Microsoft.Win32;
-using System;
+﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using McMaster.Extensions.CommandLineUtils;
+using Microsoft.Win32;
 
 namespace UJDCompiler
 {
-    internal partial class Program
+    public partial class Program
     {
-
         [Argument(0, "output directory", "The folder where the .java, .class and .jar files will be created"), Required,
          DirectoryExists]
         public string JavaOutputDirectory { get; private set; }
@@ -22,7 +21,7 @@ namespace UJDCompiler
         public bool Quiet { get; private set; }
 
         [Option(Description =
-             "The files to be compiled. Wildcards allowed. Can be set multiple times."), Required]
+                       "The files to be compiled. Wildcards allowed. Can be set multiple times."), Required]
         public string[] InputFiles { get; private set; }
 
         [Option("-j|--keep-java", Description = "Keep the .java files?")]
@@ -35,16 +34,16 @@ namespace UJDCompiler
         public bool NoJarBuild { get; private set; }
 
         [Option("-d <FILE>", Description = "Override the DialectLookup file"), FileExists]
-        public string DialectLookupFile { get; private set; } = "DialectLookup";
+        public string DialectLookupFile { get; } = "DialectLookup";
 
         [Option("-ds <CHAR>", Description = "Override the Separator char")]
-        public char DialectLookupSeparator { get; private set; } = '0';
+        public char DialectLookupSeparator { get; } = '0';
 
         [Option("-l|--left-char <CHAR>", Description = "The left char in the Tree")]
-        public char LeftChar { get; private set; } = ' ';
+        public char LeftChar { get; } = ' ';
 
         [Option("-r|--right-char <CHAR>", Description = "The right char in the Tree")]
-        public char RightChar { get; private set; } = '\t';
+        public char RightChar { get; } = '\t';
 
         [Option("-jc|--javac <PATH>", Description = "The javac path"), FileExists]
         public string JavacPath { get; private set; }
@@ -52,7 +51,7 @@ namespace UJDCompiler
         [Option("-jar <PATH>", Description = "The java-jar path"), FileExists]
         public string JarPath { get; private set; }
 
-        public static Program Attr { get; private set; }
+        public static Program Attr { get; set; }
 
         private void Init()
         {
@@ -61,7 +60,7 @@ namespace UJDCompiler
             if (javaDir == null) return;
             javaDir = Path.Combine(javaDir, "bin");
             if (JavacPath == null) JavacPath = Path.Combine(javaDir, "javac");
-            if (JarPath == null) JarPath = Path.Combine(javaDir, "jar");
+            if (JarPath   == null) JarPath   = Path.Combine(javaDir, "jar");
 
             InputFiles = InputFiles.SelectMany(p => Directory.GetFiles(Path.GetDirectoryName(p), Path.GetFileName(p)))
                                    .ToArray();
@@ -83,8 +82,8 @@ namespace UJDCompiler
 
             using var baseKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64)
                                            .OpenSubKey(javaKey);
-            var currentVersion = baseKey.GetValue("CurrentVersion").ToString();
-            using var homeKey = baseKey.OpenSubKey(currentVersion);
+            var       currentVersion = baseKey.GetValue("CurrentVersion").ToString();
+            using var homeKey        = baseKey.OpenSubKey(currentVersion);
             return homeKey?.GetValue("JavaHome")?.ToString();
         }
     }

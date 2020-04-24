@@ -11,5 +11,7 @@ namespace UJDCompiler
 
         public static Type GetToken(int c, char lT, char rT) =>
             c == lT || c == rT ? typeof(UjdToken) : typeof(JavaToken);
+
+        public override bool Equals(object obj) => (obj as Token)?.Code == Code;
     }
 }
