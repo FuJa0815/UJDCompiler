@@ -1,9 +1,9 @@
-﻿using System;
+﻿using McMaster.Extensions.CommandLineUtils;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
-using McMaster.Extensions.CommandLineUtils;
 
 namespace UJDCompiler
 {
@@ -15,6 +15,7 @@ namespace UJDCompiler
         // ReSharper disable UnusedMember.Local
         private void OnExecute()
         {
+            Init();
             RunTask("Compile started", "Compiled", () =>
             {
                 RunTask("Load UJD-Table", "UJD-Table Loaded",
@@ -47,13 +48,14 @@ namespace UJDCompiler
                     Directory.CreateDirectory(output);
                     output = Path.Combine(output, JarFilename.Replace(".jar", "") + ".jar");
                     Process.Start(new ProcessStartInfo(JarPath,
-                                                       "cvf " + output + " *") {RedirectStandardOutput = Quiet})
+                                                       "cvf " + output + " *")
+                    { RedirectStandardOutput = Quiet })
                           ?.WaitForExit();
                 }, !NoJarBuild);
-                RunTask("Deleting .java files",                       ".java files deleted", () =>
-                            DeleteAll(JavaOutputDirectory, "*.java"), !KeepJavaFiles);
-                RunTask("Deleting .class files",                       ".class files deleted", () =>
-                            DeleteAll(JavaOutputDirectory, "*.class"), !KeepClassFiles);
+                RunTask("Deleting .java files", ".java files deleted", () =>
+      DeleteAll(JavaOutputDirectory, "*.java"), !KeepJavaFiles);
+                RunTask("Deleting .class files", ".class files deleted", () =>
+      DeleteAll(JavaOutputDirectory, "*.class"), !KeepClassFiles);
             });
         }
 

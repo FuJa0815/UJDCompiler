@@ -18,14 +18,14 @@ namespace UJDCompiler
                 {
                     if (currentNode.Value != null)
                     {
-                        yield return new JavaToken {Code = currentNode.Value};
+                        yield return new JavaToken { Code = currentNode.Value };
                         currentNode = root;
                     }
 
                     currentNode = c == Program.Attr.LeftChar ? currentNode.LeftNode : currentNode.RightNode;
                 }
 
-                yield return new JavaToken {Code = currentNode.Value};
+                yield return new JavaToken { Code = currentNode.Value };
             }
         }
 
@@ -48,11 +48,11 @@ namespace UJDCompiler
 
         private class UjdNode
         {
-            private  UjdNode _leftNode;
-            private  UjdNode _rightNode;
+            private UjdNode _leftNode;
+            private UjdNode _rightNode;
             internal UjdNode LeftNode => _leftNode ??= new UjdNode();
-            internal UjdNode RightNode   => _rightNode ??= new UjdNode();
-            internal string  Value     { get; set; }
+            internal UjdNode RightNode => _rightNode ??= new UjdNode();
+            internal string Value { get; set; }
         }
     }
 }
