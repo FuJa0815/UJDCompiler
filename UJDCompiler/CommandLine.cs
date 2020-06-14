@@ -8,8 +8,16 @@ using Microsoft.Win32;
 
 namespace UJDCompiler
 {
-    public partial class Program
+    public class CommandLine
     {
+        public static CommandLine Attr { get; private set; }
+        public CommandLine()
+        {
+            Attr = this;
+        }
+
+        
+
         [Argument(0, "output directory", "The folder where the .java, .class and .jar files will be created"), Required,
          DirectoryExists]
         public string JavaOutputDirectory { get; private set; }
@@ -21,7 +29,7 @@ namespace UJDCompiler
         public bool Quiet { get; private set; }
 
         [Option(Description =
-                       "The files to be compiled. Wildcards allowed. Can be set multiple times."), Required]
+                       "The files to be compiled. Wildcards allowed. Can be supplied multiple times."), Required]
         public string[] InputFiles { get; private set; }
 
         [Option("-j|--keep-java", Description = "Keep the .java files?")]
@@ -50,12 +58,8 @@ namespace UJDCompiler
 
         [Option("-jar <PATH>", Description = "The java-jar path"), FileExists]
         public string JarPath { get; private set; }
-
-        public static Program Attr { get; set; }
-
         private void Init()
         {
-            //Set JavawPath & JarPath
             var javaDir = GetJavaDir();
             if (javaDir == null) return;
             javaDir = Path.Combine(javaDir, "bin");
@@ -64,8 +68,6 @@ namespace UJDCompiler
 
             InputFiles = InputFiles.SelectMany(p => Directory.GetFiles(Path.GetDirectoryName(p), Path.GetFileName(p)))
                                    .ToArray();
-
-            Attr = this;
 
             if (JavacPath != null && (JarPath != null || NoJarBuild)) return;
             Console.Error.WriteLine("Could not determine java path. Please provide the javac Path and the jar Path.");
@@ -78,13 +80,20 @@ namespace UJDCompiler
             if (home != null) return home;
 
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return null;
-            const string javaKey = "SOFTWARE\\JavaSoft\\JDK";
+            const string javaKey = "SOFTWARE\\JavaSoft\\";
 
-            using var baseKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64)
-                                           .OpenSubKey(javaKey);
+            var reg = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
+            using var baseKey = reg.OpenSubKey(javaKey + "JAR")??reg.OpenSubKey(javaKey + "Java Development Kit");
+
             var       currentVersion = baseKey.GetValue("CurrentVersion").ToString();
             using var homeKey        = baseKey.OpenSubKey(currentVersion);
             return homeKey?.GetValue("JavaHome")?.ToString();
+        }
+
+        private void OnExecute()
+        {
+            Init();
+            Program.Compile();
         }
     }
 }

@@ -12,7 +12,7 @@ namespace UJDCompiler
             int   c;
             while ((c = s.Read()) >= 0)
             {
-                var t = Token.TokenFactory(c, Program.Attr.LeftChar, Program.Attr.RightChar);
+                var t = Token.TokenFactory(c, CommandLine.Attr.LeftChar, CommandLine.Attr.RightChar);
                 if (currentToken == null || currentToken.GetType() != t)
                 {
                     //token changed

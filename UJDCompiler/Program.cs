@@ -7,21 +7,21 @@ using McMaster.Extensions.CommandLineUtils;
 
 namespace UJDCompiler
 {
-    public partial class Program
+    public class Program
     {
+
         private static void Main(string[] args) =>
-            CommandLineApplication.Execute<Program>(args);
+            CommandLineApplication.Execute<CommandLine>(args);
 
         // ReSharper disable UnusedMember.Local
-        private void OnExecute()
+        internal static void Compile()
         {
-            Init();
             RunTask("Compile started", "Compiled", () =>
             {
                 RunTask("Load UJD-Table", "UJD-Table Loaded",
-                        () => UjdToken.LoadTree(DialectLookupFile, DialectLookupSeparator));
+                        () => UjdToken.LoadTree(CommandLine.Attr.DialectLookupFile, CommandLine.Attr.DialectLookupSeparator));
                 var sb = new StringBuilder();
-                foreach (var file in InputFiles)
+                foreach (var file in CommandLine.Attr.InputFiles)
                 {
                     var tokens = RunTask("Tokenizer started", "Tokenizer finished",
                                          () => Lexer.GetTokens(new StreamReader(File.OpenRead(file))));
@@ -40,34 +40,34 @@ namespace UJDCompiler
 
 
                 RunTask("Running javac", "javac done", () =>
-                            Process.Start(JavacPath,
-                                          sb + "-d " + JavaOutputDirectory)?.WaitForExit());
+                            Process.Start(CommandLine.Attr.JavacPath,
+                                          sb + "-d " + CommandLine.Attr.JavaOutputDirectory)?.WaitForExit());
                 RunTask("Building jar", "jar built", () =>
                 {
-                    var output = Path.Combine(JavaOutputDirectory, "bin");
+                    var output = Path.Combine(CommandLine.Attr.JavaOutputDirectory, "bin");
                     Directory.CreateDirectory(output);
-                    output = Path.Combine(output, JarFilename.Replace(".jar", "") + ".jar");
-                    Process.Start(new ProcessStartInfo(JarPath,
+                    output = Path.Combine(output, CommandLine.Attr.JarFilename.Replace(".jar", "") + ".jar");
+                    Process.Start(new ProcessStartInfo(CommandLine.Attr.JarPath,
                                                        "cvf " + output + " *")
-                                      {RedirectStandardOutput = Quiet})
+                                      {RedirectStandardOutput = CommandLine.Attr.Quiet})
                           ?.WaitForExit();
-                }, !NoJarBuild);
+                }, !CommandLine.Attr.NoJarBuild);
                 RunTask("Deleting .java files",                       ".java files deleted", () =>
-                            DeleteAll(JavaOutputDirectory, "*.java"), !KeepJavaFiles);
+                            DeleteAll(CommandLine.Attr.JavaOutputDirectory, "*.java"), !CommandLine.Attr.KeepJavaFiles);
                 RunTask("Deleting .class files",                       ".class files deleted", () =>
-                            DeleteAll(JavaOutputDirectory, "*.class"), !KeepClassFiles);
+                            DeleteAll(CommandLine.Attr.JavaOutputDirectory, "*.class"), !CommandLine.Attr.KeepClassFiles);
             });
         }
 
-        private void DeleteAll(string path, string wildcard)
+        private static void DeleteAll(string path, string wildcard)
         {
             foreach (var file in new DirectoryInfo(path).EnumerateFiles(wildcard)) file.Delete();
         }
 
-        private string GetJavaFromUjdPath(string file) =>
-            Path.Combine(JavaOutputDirectory, Path.GetFileNameWithoutExtension(file)) + ".java";
+        private static string GetJavaFromUjdPath(string file) =>
+            Path.Combine(CommandLine.Attr.JavaOutputDirectory, Path.GetFileNameWithoutExtension(file)) + ".java";
 
-        private void RunTask(string pre, string post, Action action, bool run = true)
+        private static void RunTask(string pre, string post, Action action, bool run = true)
         {
             if (run)
                 RunTask<object>(pre, post, () =>
@@ -77,12 +77,12 @@ namespace UJDCompiler
                 });
         }
 
-        private T RunTask<T>(string pre, string post, Func<T> action, bool run = true)
+        private static T RunTask<T>(string pre, string post, Func<T> action, bool run = true)
         {
             if (!run) return default;
-            if (!Quiet) Console.WriteLine(pre);
+            if (!CommandLine.Attr.Quiet) Console.WriteLine(pre);
             var v = action();
-            if (!Quiet) Console.WriteLine(post);
+            if (!CommandLine.Attr.Quiet) Console.WriteLine(post);
             return v;
         }
     }

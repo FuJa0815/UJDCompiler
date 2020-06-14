@@ -22,7 +22,7 @@ namespace UJDCompiler
                         currentNode = root;
                     }
 
-                    currentNode = c == Program.Attr.LeftChar ? currentNode.LeftNode : currentNode.RightNode;
+                    currentNode = c == CommandLine.Attr.LeftChar ? currentNode.LeftNode : currentNode.RightNode;
                 }
 
                 yield return new JavaToken {Code = currentNode.Value};
@@ -32,7 +32,7 @@ namespace UJDCompiler
         private static void WriteToTree(Stack<char> remain, string result, UjdNode currNode)
         {
             if (remain.TryPop(out var c))
-                WriteToTree(remain, result, c == Program.Attr.LeftChar ? currNode.LeftNode : currNode.RightNode);
+                WriteToTree(remain, result, c == CommandLine.Attr.LeftChar ? currNode.LeftNode : currNode.RightNode);
             else
                 currNode.Value = result;
         }

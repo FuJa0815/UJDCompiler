@@ -12,6 +12,16 @@ namespace UJDCompiler
         public static Type TokenFactory(int c, char lT, char rT) =>
             c == lT || c == rT ? typeof(UjdToken) : typeof(JavaToken);
 
-        public override bool Equals(object obj) => (obj as Token)?.Code == Code;
+        protected bool Equals(Token other) => Code == other.Code;
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((Token) obj);
+        }
+
+        public override int GetHashCode() => (Code != null ? Code.GetHashCode() : 0);
     }
 }

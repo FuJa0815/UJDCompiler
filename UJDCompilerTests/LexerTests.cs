@@ -10,7 +10,7 @@ namespace UJDCompiler.Tests
         [AssemblyInitialize]
         public static void AssemblyInit(TestContext context)
         {
-            Program.Attr = new Program();
+            new CommandLine();
         }
 
         [TestMethod]
